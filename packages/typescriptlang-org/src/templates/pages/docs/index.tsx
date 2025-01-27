@@ -73,7 +73,7 @@ const Index: React.FC<Props> = (props) => {
       } else {
 
       return <li key={item.id}>
-        { path.endsWith("png") ?
+        { path.endsWith(".png") || path.endsWith(".zip") ?
           <a href={path}>{item.title}</a> :
           <Link to={path}>{item.title}</Link>
         }
@@ -104,8 +104,6 @@ const Index: React.FC<Props> = (props) => {
                 <ul>
                   <RenderItems items={navRoot} />
                 </ul>
-
-                {showIntro && <p>We also have an <a href='/assets/typescript-handbook.epub'>epub</a> and <a href='/assets/typescript-handbook.pdf'>pdf</a> version of the Handbook.</p>}
               </div>
             )
           })}

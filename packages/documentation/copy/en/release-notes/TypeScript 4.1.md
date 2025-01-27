@@ -35,7 +35,7 @@ type Options = {
 //   };
 ```
 
-But there's another place that that string literal types could be used as building blocks: building other string literal types.
+But there's another place that string literal types could be used as building blocks: building other string literal types.
 
 That's why TypeScript 4.1 brings the template literal string type.
 It has the same syntax as [template literal strings in JavaScript](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals), but is used in type positions.
@@ -299,7 +299,7 @@ declare function customThen<T, U>(
 ): Promise<Awaited<U>>;
 ```
 
-Keep in mind that while these recursive types are powerful, but they should be used responsibly and sparingly.
+Keep in mind that while these recursive types are powerful, they should be used responsibly and sparingly.
 
 First off, these types can do a lot of work which means that they can increase type-checking time.
 Trying to model numbers in the Collatz conjecture or Fibonacci sequence might be fun, but don't ship that in `.d.ts` files on npm.
@@ -347,7 +347,7 @@ That means that in our last example, `opts.yadda` will have the type `string | n
 If you need to access that property, you'll either have to check for its existence first or use a non-null assertion operator (the postfix `!` character).
 
 ```ts twoslash
-// @errors: 2532
+// @errors: 2532 18048
 // @noUncheckedIndexedAccess
 interface Options {
   path: string;
@@ -380,7 +380,7 @@ function checkOptions(opts: Options) {
 One consequence of using [`noUncheckedIndexedAccess`](/tsconfig#noUncheckedIndexedAccess) is that indexing into an array is also more strictly checked, even in a bounds-checked loop.
 
 ```ts twoslash
-// @errors: 2532
+// @errors: 2532 18048
 // @noUncheckedIndexedAccess
 function screamLines(strs: string[]) {
   // This will have issues
@@ -583,7 +583,7 @@ TypeScript 4.1 ships with a quick fix to help fix this break.
 In JavaScript, object spreads (like `{ ...foo }`) don't operate over falsy values.
 So in code like `{ ...foo }`, `foo` will be skipped over if it's `null` or `undefined`.
 
-Many users take advantage of this to spread in properties "conditionally".
+Many users take advantage of this to spread properties "conditionally".
 
 ```ts
 interface Person {

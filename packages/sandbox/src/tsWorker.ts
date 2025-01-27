@@ -41,19 +41,19 @@ export declare class TypeScriptWorker implements ts.LanguageServiceHost {
   ): Promise<ts.TextChange[]>
   getFormattingEditsAfterKeystroke(
     fileName: string,
-    postion: number,
+    position: number,
     ch: string,
     options: ts.FormatCodeOptions
   ): Promise<ts.TextChange[]>
   findRenameLocations(
     fileName: string,
-    positon: number,
+    position: number,
     findInStrings: boolean,
     findInComments: boolean,
     providePrefixAndSuffixTextForRename: boolean
   ): Promise<readonly ts.RenameLocation[] | undefined>
-  getRenameInfo(fileName: string, positon: number, options: ts.RenameInfoOptions): Promise<ts.RenameInfo>
-  getEmitOutput(fileName: string): Promise<ts.EmitOutput>
+  getRenameInfo(fileName: string, position: number, options: ts.RenameInfoOptions): Promise<ts.RenameInfo>
+  getEmitOutput(fileName: string, emitOnlyDtsFiles?: boolean, forceDtsEmit?: boolean): Promise<ts.EmitOutput>
   getCodeFixesAtPosition(
     fileName: string,
     start: number,
