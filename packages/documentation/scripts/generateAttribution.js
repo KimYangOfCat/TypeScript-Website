@@ -1,6 +1,6 @@
 /**
     Updates the JSON file `attribution.json` with contributors based on commits to files, to run:
-    yarn workspace documentation bootstrap
+    pnpm run --filter=documentation bootstrap
 */
 const { execSync } = require("child_process");
 const path = require("path");
@@ -39,7 +39,7 @@ const gravatarURLForAuthor = (email) => {
       return "https://avatars.githubusercontent.com/u/49038?s=100&u=0b9ac5bf42a8ea2543a05191e150e0213456744e&v=4";
 
     default:
-      return crypto.createHash("md5").update(email).digest("hex");
+      return crypto.createHash("sha256").update(email).digest("hex");
   }
 };
 
@@ -83,6 +83,8 @@ const allFiles = recursiveReadDirSync("copy/");
 const json = {};
 
 allFiles.forEach((f) => {
+  f = f.replace(/\\/g, "/");
+
   const oldName = f.split("/").splice(2).join("/");
   const originalRef = oldJSON[oldName] || { top: [], total: 0 };
 

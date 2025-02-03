@@ -3,7 +3,7 @@
 
 /** Run with:
      node --inspect-brk ./node_modules/.bin/ts-node packages/tsconfig-reference/scripts/tsconfig/generateJSON.ts
-     yarn ts-node packages/tsconfig-reference/scripts/tsconfig/generateJSON.ts
+     pnpm ts-node packages/tsconfig-reference/scripts/tsconfig/generateJSON.ts
 */
 
 console.log("TSConfig Ref: JSON for TSConfig");
@@ -190,7 +190,8 @@ allOptions.forEach((option) => {
   }
 
   if (name in defaultsForOptions) {
-    option.defaultValue = defaultsForOptions[name];
+    const defaultValue = defaultsForOptions[name];
+    option.defaultValue = Array.isArray(defaultValue) ? defaultValue.join(" ") : defaultValue;
   }
 
   if (buildOpts.includes(name)) option.hostObj = "build";

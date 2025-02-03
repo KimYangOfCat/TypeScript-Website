@@ -98,6 +98,11 @@
               "type": "boolean",
               "default": false,
               "markdownDescription": "Log paths used during the `moduleResolution` process.\n\nSee more: https://www.typescriptlang.org/tsconfig#traceResolution"
+            },
+            "stopBuildOnErrors": {
+              "description": "Skip building downstream projects on error in upstream project.",
+              "type": "boolean",
+              "default": false
             }
           }
         }
@@ -161,6 +166,16 @@
           "type": "object",
           "description": "Instructs the TypeScript compiler how to compile .ts files.",
           "properties": {
+            "allowArbitraryExtensions": {
+              "description": "Enable importing files with any extension, provided a declaration file is present.",
+              "type": "boolean",
+              "markdownDescription": "Enable importing files with any extension, provided a declaration file is present.\n\nSee more: https://www.typescriptlang.org/tsconfig#allowImportingTsExtensions"
+            },
+            "allowImportingTsExtensions": {
+              "description": "Allow imports to include TypeScript file extensions. Requires '--moduleResolution bundler' and either '--noEmit' or '--emitDeclarationOnly' to be set.",
+              "type": "boolean",
+              "markdownDescription": "Allow imports to include TypeScript file extensions. Requires '--moduleResolution bundler' and either '--noEmit' or '--emitDeclarationOnly' to be set.\n\nSee more: https://www.typescriptlang.org/tsconfig#allowImportingTsExtensions"
+            },
             "charset": {
               "description": "No longer supported. In early versions, manually set the text encoding for reading files.",
               "type": "string",
@@ -172,6 +187,15 @@
               "default": true,
               "markdownDescription": "Enable constraints that allow a TypeScript project to be used with project references.\n\nSee more: https://www.typescriptlang.org/tsconfig#composite"
             },
+            "customConditions": {
+              "description": "Conditions to set in addition to the resolver-specific defaults when resolving imports.",
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "type": "string"
+              },
+              "markdownDescription": "Conditions to set in addition to the resolver-specific defaults when resolving imports.\n\nSee more: https://www.typescriptlang.org/tsconfig#customConditions"
+            },
             "declaration": {
               "description": "Generate .d.ts files from TypeScript and JavaScript files in your project.",
               "type": "boolean",
@@ -180,7 +204,10 @@
             },
             "declarationDir": {
               "description": "Specify the output directory for generated declaration files.",
-              "type": ["string", "null"],
+              "type": [
+                "string",
+                "null"
+              ],
               "markdownDescription": "Specify the output directory for generated declaration files.\n\nSee more: https://www.typescriptlang.org/tsconfig#declarationDir"
             },
             "diagnostics": {
@@ -238,9 +265,20 @@
               "default": false,
               "markdownDescription": "Include source code in the sourcemaps inside the emitted JavaScript.\n\nSee more: https://www.typescriptlang.org/tsconfig#inlineSources"
             },
+            "noCheck": {
+              "description": "Disable full type checking (only critical parse and emit errors will be reported).",
+              "type": "boolean",
+              "default": false
+            },
             "jsx": {
               "description": "Specify what JSX code is generated.",
-              "enum": ["preserve", "react", "react-jsx", "react-jsxdev", "react-native"]
+              "enum": [
+                "preserve",
+                "react",
+                "react-jsx",
+                "react-jsxdev",
+                "react-native"
+              ]
             },
             "reactNamespace": {
               "description": "Specify the object invoked for `createElement`. This only applies when targeting `react` JSX emit.",
@@ -303,7 +341,11 @@
             "moduleDetection": {
               "description": "Control what method is used to detect module-format JS files.",
               "type": "string",
-              "enum": ["auto", "legacy", "force"],
+              "enum": [
+                "auto",
+                "legacy",
+                "force"
+              ],
               "default": "auto"
             },
             "moduleResolution": {
@@ -311,7 +353,10 @@
               "type": "string",
               "anyOf": [
                 {
-                  "enum": ["Classic", "Node"]
+                  "enum": [
+                    "Classic",
+                    "Node"
+                  ]
                 },
                 {
                   "pattern": "^(([Nn]ode)|([Cc]lassic))$"
@@ -331,9 +376,13 @@
             "newLine": {
               "description": "Set the newline character for emitting files.",
               "type": "string",
+              "default": "lf",
               "anyOf": [
                 {
-                  "enum": ["crlf", "lf"]
+                  "enum": [
+                    "crlf",
+                    "lf"
+                  ]
                 },
                 {
                   "pattern": "^(CRLF|LF|crlf|lf)$"
@@ -497,7 +546,7 @@
             "target": {
               "description": "Set the JavaScript language version for emitted JavaScript and include compatible library declarations.",
               "type": "string",
-              "default": "ES3",
+              "default": "ES5",
               "anyOf": [
                 {
                   "enum": [
@@ -610,7 +659,7 @@
             "forceConsistentCasingInFileNames": {
               "description": "Ensure that casing is correct in imports.",
               "type": "boolean",
-              "default": false,
+              "default": true,
               "markdownDescription": "Ensure that casing is correct in imports.\n\nSee more: https://www.typescriptlang.org/tsconfig#forceConsistentCasingInFileNames"
             },
             "generateCpuProfile": {
@@ -620,9 +669,9 @@
               "markdownDescription": "Emit a v8 CPU profile of the compiler run for debugging.\n\nSee more: https://www.typescriptlang.org/tsconfig#generateCpuProfile"
             },
             "baseUrl": {
-              "description": "Specify the base directory to resolve non-relative module names.",
+              "description": "Specify the base directory to resolve bare specifier module names.",
               "type": "string",
-              "markdownDescription": "Specify the base directory to resolve non-relative module names.\n\nSee more: https://www.typescriptlang.org/tsconfig#baseUrl"
+              "markdownDescription": "Specify the base directory to resolve bare specifier module names.\n\nSee more: https://www.typescriptlang.org/tsconfig#baseUrl"
             },
             "paths": {
               "description": "Specify a set of entries that re-map imports to additional lookup locations.",
@@ -848,7 +897,11 @@
             "importsNotUsedAsValues": {
               "description": "Specify emit/checking behavior for imports that are only used for types.",
               "default": "remove",
-              "enum": ["remove", "preserve", "error"]
+              "enum": [
+                "remove",
+                "preserve",
+                "error"
+              ]
             },
             "alwaysStrict": {
               "description": "Ensure 'use strict' is always emitted.",
@@ -872,6 +925,11 @@
               "type": "boolean",
               "default": false,
               "markdownDescription": "Emit more compliant, but verbose and less performant JavaScript for iteration.\n\nSee more: https://www.typescriptlang.org/tsconfig#downlevelIteration"
+            },
+            "isolatedDeclarations": {
+              "description": "Require sufficient annotation on exports so other tools can trivially generate declaration files.",
+              "type": "boolean",
+              "default": false
             },
             "checkJs": {
               "description": "Enable error reporting in type-checked JavaScript files.",
@@ -927,6 +985,24 @@
               "default": false,
               "markdownDescription": "Enable importing .json files\n\nSee more: https://www.typescriptlang.org/tsconfig#resolveJsonModule"
             },
+            "resolvePackageJsonExports": {
+              "description": "Use the package.json 'exports' field when resolving package imports.",
+              "type": "boolean",
+              "default": false,
+              "markdownDescription": "Use the package.json 'exports' field when resolving package imports.\n\nSee more: https://www.typescriptlang.org/tsconfig#resolvePackageJsonExports"
+            },
+            "resolvePackageJsonImports": {
+              "description": "Use the package.json 'imports' field when resolving imports.",
+              "type": "boolean",
+              "default": false,
+              "markdownDescription": "Use the package.json 'imports' field when resolving imports.\n\nSee more: https://www.typescriptlang.org/tsconfig#resolvePackageJsonImports"
+            },
+            "verbatimModuleSyntax": {
+              "description": "Do not transform or elide any imports or exports not marked as type-only, ensuring they are written in the output file's format based on the 'module' setting.",
+              "type": "boolean",
+              "default": false,
+              "markdownDescription": "Do not transform or elide any imports or exports not marked as type-only, ensuring they are written in the output file's format based on the 'module' setting."
+            },
             "assumeChangesOnlyAffectDirectDependencies": {
               "description": "Have recompiles in '--incremental' and '--watch' assume that changes within a file will only affect files directly depending on it. Requires TypeScript version 3.8 or later.",
               "type": "boolean"
@@ -950,6 +1026,26 @@
               "description": "Opt a project out of multi-project reference checking when editing.",
               "type": "boolean",
               "markdownDescription": "Opt a project out of multi-project reference checking when editing.\n\nSee more: https://www.typescriptlang.org/tsconfig#disableSolutionSearching"
+            },
+            "generateTrace": {
+              "description": "Generates an event trace and a list of types.",
+              "type": "boolean",
+              "default": false
+            },
+            "noUncheckedSideEffectImports": {
+              "description": "Check side effect imports.",
+              "type": "boolean",
+              "default": false
+            },
+            "strictBuiltinIteratorReturn": {
+              "description": "Built-in iterators are instantiated with a 'TReturn' type of 'undefined' instead of 'any'.",
+              "type": "boolean",
+              "default": false
+            },
+            "rewriteRelativeImportExtensions": {
+              "description": "Rewrite '.ts', '.tsx', '.mts', and '.cts' file extensions in relative import paths to their JavaScript equivalent in output files.",
+              "type": "boolean",
+              "default": false
             }
           }
         }
@@ -1046,7 +1142,9 @@
               "type": "boolean"
             },
             "ignore": {
-              "default": ["(?:^|/)node_modules/"],
+              "default": [
+                "(?:^|/)node_modules/"
+              ],
               "description": "Paths which should not be compiled.\n\nEach string in the array is converted to a regular expression via `new RegExp()` and tested against source paths prior to compilation.\n\nSource paths are normalized to posix-style separators, relative to the directory containing `tsconfig.json` or to cwd if no `tsconfig.json` is loaded.\n\nDefault is to ignore all node_modules subdirectories.",
               "items": {
                 "type": "string"
@@ -1056,7 +1154,10 @@
             "ignoreDiagnostics": {
               "description": "Ignore TypeScript warnings by diagnostic code.",
               "items": {
-                "type": ["string", "number"]
+                "type": [
+                  "string",
+                  "number"
+                ]
               },
               "type": "array"
             },
