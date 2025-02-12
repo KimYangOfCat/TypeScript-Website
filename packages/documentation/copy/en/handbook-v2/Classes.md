@@ -150,11 +150,14 @@ class Point {
 
 ```ts twoslash
 class Point {
-  // Overloads
-  constructor(x: number, y: string);
-  constructor(s: string);
-  constructor(xs: any, y?: any) {
-    // TBD
+  x: number = 0;
+  y: number = 0;
+
+  // Constructor overloads
+  constructor(x: number, y: number);
+  constructor(xy: string);
+  constructor(x: string | number, y: number = 0) {
+    // Code logic here
   }
 }
 ```
@@ -250,7 +253,6 @@ TypeScript has some special inference rules for accessors:
 
 - If `get` exists but no `set`, the property is automatically `readonly`
 - If the type of the setter parameter is not specified, it is inferred from the return type of the getter
-- Getters and setters must have the same [Member Visibility](#member-visibility)
 
 Since [TypeScript 4.3](https://devblogs.microsoft.com/typescript/announcing-typescript-4-3/), it is possible to have accessors with different types for getting and setting.
 
@@ -339,7 +341,7 @@ interface Checkable {
 class NameChecker implements Checkable {
   check(s) {
     // Notice no error here
-    return s.toLowercse() === "ok";
+    return s.toLowerCase() === "ok";
     //         ^?
   }
 }
@@ -372,7 +374,7 @@ c.y = 10;
 </blockquote>
 
 Classes may `extend` from a base class.
-A derived class has all the properties and methods of its base class, and also define additional members.
+A derived class has all the properties and methods of its base class, and can also define additional members.
 
 ```ts twoslash
 class Animal {
@@ -443,7 +445,8 @@ class Base {
     console.log("Hello, world!");
   }
 }
-declare const d: Base;
+class Derived extends Base {}
+const d = new Derived();
 // ---cut---
 // Alias the derived instance through a base class reference
 const b: Base = d;
@@ -667,7 +670,7 @@ The main thing to note here is that in the derived class, we need to be careful 
 
 #### Cross-hierarchy `protected` access
 
-Different OOP languages disagree about whether it's legal to access a `protected` member through a base class reference:
+TypeScript doesn't allow accessing `protected` members of a sibling class in a class hierarchy:
 
 ```ts twoslash
 // @errors: 2446
@@ -681,19 +684,16 @@ class Derived2 extends Base {
   f1(other: Derived2) {
     other.x = 10;
   }
-  f2(other: Base) {
+  f2(other: Derived1) {
     other.x = 10;
   }
 }
 ```
 
-Java, for example, considers this to be legal.
-On the other hand, C# and C++ chose that this code should be illegal.
-
-TypeScript sides with C# and C++ here, because accessing `x` in `Derived2` should only be legal from `Derived2`'s subclasses, and `Derived1` isn't one of them.
+This is because accessing `x` in `Derived2` should only be legal from `Derived2`'s subclasses, and `Derived1` isn't one of them.
 Moreover, if accessing `x` through a `Derived1` reference is illegal (which it certainly should be!), then accessing it through a base class reference should never improve the situation.
 
-See also [Why Can’t I Access A Protected Member From A Derived Class?](https://blogs.msdn.microsoft.com/ericlippert/2005/11/09/why-cant-i-access-a-protected-member-from-a-derived-class/) which explains more of C#'s reasoning.
+See also [Why Can’t I Access A Protected Member From A Derived Class?](https://blogs.msdn.microsoft.com/ericlippert/2005/11/09/why-cant-i-access-a-protected-member-from-a-derived-class/) which explains more of C#'s reasoning on the same topic.
 
 ### `private`
 
@@ -723,7 +723,7 @@ class Derived extends Base {
 }
 ```
 
-Because `private` members aren't visible to derived classes, a derived class can't increase its visibility:
+Because `private` members aren't visible to derived classes, a derived class can't increase their visibility:
 
 ```ts twoslash
 // @errors: 2415
@@ -1210,7 +1210,7 @@ class Box<T> {
   }
 }
 
-const box = new Box();
+const box = new Box<string>();
 box.value = "Gameboy";
 
 box.value;
@@ -1266,6 +1266,32 @@ const someClass = class<Type> {
 
 const m = new someClass("Hello, world");
 //    ^?
+```
+
+## Constructor Signatures
+
+JavaScript classes are instantiated with the `new` operator. Given the type of a class itself, the [InstanceType](/docs/handbook/utility-types.html#instancetypetype) utility type models this operation.
+
+```ts twoslash
+class Point {
+  createdAt: number;
+  x: number;
+  y: number
+  constructor(x: number, y: number) {
+    this.createdAt = Date.now()
+    this.x = x;
+    this.y = y;
+  }
+}
+type PointInstance = InstanceType<typeof Point>
+
+function moveRight(point: PointInstance) {
+  point.x += 5;
+}
+
+const point = new Point(3, 4);
+moveRight(point);
+point.x; // => 8
 ```
 
 ## `abstract` Classes and Members

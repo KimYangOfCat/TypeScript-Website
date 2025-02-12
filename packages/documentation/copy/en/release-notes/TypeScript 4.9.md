@@ -20,10 +20,7 @@ const palette = {
 //  ^^^^ sacrebleu - we've made a typo!
 };
 
-// We want to be able to use array methods on 'red'...
-const redComponent = palette.red.at(0);
-
-// or string methods on 'green'...
+// We want to be able to use string methods on 'green'...
 const greenNormalized = palette.green.toUpperCase();
 ```
 
@@ -42,8 +39,9 @@ const palette: Record<Colors, string | RGB> = {
 //  ~~~~ The typo is now correctly detected
 };
 
-// But we now have an undesirable error here - 'palette.red' "could" be a string.
-const redComponent = palette.red.at(0);
+// But we now have an undesirable error here - 'palette.green' "could" be of type RGB and
+// property 'toUpperCase' does not exist on type 'string | RGB'.
+const greenNormalized = palette.green.toUpperCase();
 ```
 
 The new `satisfies` operator lets us validate that the type of an expression matches some type, without changing the resulting type of that expression.
@@ -61,8 +59,7 @@ const palette = {
 //  ~~~~ The typo is now caught!
 } satisfies Record<Colors, string | RGB>;
 
-// Both of these methods are still accessible!
-const redComponent = palette.red.at(0);
+// toUpperCase() method is still accessible!
 const greenNormalized = palette.green.toUpperCase();
 ```
 
@@ -217,7 +214,7 @@ This helps check that we're using valid property keys, and not accidentally chec
 
 For more information, [read the implementing pull request](https://github.com/microsoft/TypeScript/pull/50666)
 
-## <a name="auto-accessors-in-classes"> Auto-Accessors in Classes
+## Auto-Accessors in Classes
 
 TypeScript 4.9 supports an upcoming feature in ECMAScript called auto-accessors.
 Auto-accessors are declared just like properties on classes, except that they're declared with the `accessor` keyword.
@@ -242,7 +239,7 @@ class Person {
         return this.#__name;
     }
     set name(value: string) {
-        this.#__name = name;
+        this.#__name = value;
     }
 
     constructor(name: string) {

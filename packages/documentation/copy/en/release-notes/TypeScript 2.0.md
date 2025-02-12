@@ -103,7 +103,7 @@ The effects on subject variable types accurately reflect JavaScript semantics (e
 ## Dotted names in type guards
 
 Type guards previously only supported checking local variables and parameters.
-Type guards now support checking "dotted names" consisting of a variable or parameter name followed one or more property accesses.
+Type guards now support checking "dotted names" consisting of a variable or parameter name followed by one or more property accesses.
 
 ##### Example
 
@@ -380,7 +380,7 @@ test(() => {
 
 ## Read-only properties and index signatures
 
-A property or index signature can now be declared with the `readonly` modifier is considered read-only.
+A property or index signature can now be declared with the `readonly` modifier.
 
 Read-only properties may have initializers and may be assigned to in constructors within the same class declaration, but otherwise assignments to read-only properties are disallowed.
 
@@ -478,7 +478,7 @@ A new flag is also added in TypeScript 2.0 to flag all uses of `this` in functio
 
 Glob support is here!! Glob support has been [one of the most requested features](https://github.com/Microsoft/TypeScript/issues/1927).
 
-Glob-like file patterns are supported two properties [`include`](/tsconfig#include) and `exclude`.
+Glob-like file patterns are supported by two properties [`include`](/tsconfig#include) and [`exclude`](/tsconfig#exclude).
 
 ##### Example
 
@@ -505,14 +505,14 @@ The supported glob wildcards are:
 
 If a segment of a glob pattern includes only `*` or `.*`, then only files with supported extensions are included (e.g. `.ts`, `.tsx`, and `.d.ts` by default with `.js` and `.jsx` if [`allowJs`](/tsconfig#allowJs) is set to true).
 
-If the [`files`](/tsconfig#files) and [`include`](/tsconfig#include) are both left unspecified, the compiler defaults to including all TypeScript (`.ts`, `.d.ts` and `.tsx`) files in the containing directory and subdirectories except those excluded using the `exclude` property. JS files (`.js` and `.jsx`) are also included if [`allowJs`](/tsconfig#allowJs) is set to true.
+If the [`files`](/tsconfig#files) and [`include`](/tsconfig#include) are both left unspecified, the compiler defaults to including all TypeScript (`.ts`, `.d.ts` and `.tsx`) files in the containing directory and subdirectories except those excluded using the [`exclude`](/tsconfig#exclude) property. JS files (`.js` and `.jsx`) are also included if [`allowJs`](/tsconfig#allowJs) is set to true.
 
 If the [`files`](/tsconfig#files) or [`include`](/tsconfig#include) properties are specified, the compiler will instead include the union of the files included by those two properties.
-Files in the directory specified using the [`outDir`](/tsconfig#outDir) compiler option are always excluded unless explicitly included via the [`files`](/tsconfig#files) property (even when the `exclude` property is specified).
+Files in the directory specified using the [`outDir`](/tsconfig#outDir) compiler option are always excluded unless explicitly included via the [`files`](/tsconfig#files) property (even when the [`exclude`](/tsconfig#exclude) property is specified).
 
-Files included using [`include`](/tsconfig#include) can be filtered using the `exclude` property.
-However, files included explicitly using the [`files`](/tsconfig#files) property are always included regardless of `exclude`.
-The `exclude` property defaults to excluding the `node_modules`, `bower_components`, and `jspm_packages` directories when not specified.
+Files included using [`include`](/tsconfig#include) can be filtered using the [`exclude`](/tsconfig#exclude) property.
+However, files included explicitly using the [`files`](/tsconfig#files) property are always included regardless of [`exclude`](/tsconfig#exclude).
+The [`exclude`](/tsconfig#exclude) property defaults to excluding the `node_modules`, `bower_components`, and `jspm_packages` directories when not specified.
 
 ## Module resolution enhancements: BaseUrl, Path mapping, rootDirs and tracing
 
@@ -523,7 +523,7 @@ See [Module Resolution](http://www.typescriptlang.org/docs/handbook/module-resol
 ## Base URL
 
 Using a [`baseUrl`](/tsconfig#baseUrl) is a common practice in applications using AMD module loaders where modules are "deployed" to a single folder at run-time.
-All module imports with non-relative names are assumed to be relative to the [`baseUrl`](/tsconfig#baseUrl).
+All module imports with bare specifier names are assumed to be relative to the [`baseUrl`](/tsconfig#baseUrl).
 
 ##### Example
 
@@ -562,7 +562,7 @@ For instance, an import to a module `"jquery"` would be translated at runtime to
 }
 ```
 
-Using [`paths`](/tsconfig#paths) also allow for more sophisticated mappings including multiple fall back locations.
+Using [`paths`](/tsconfig#paths) also allows for more sophisticated mappings including multiple fall back locations.
 Consider a project configuration where only some modules are available in one location, and the rest are in another.
 
 ## Virtual Directories with `rootDirs`
@@ -627,7 +627,7 @@ x(y);
 
 ## Wildcard character in module names
 
-Importing none-code resources using module loaders extension (e.g. [AMD](https://github.com/amdjs/amdjs-api/blob/master/LoaderPlugins.md) or [SystemJS](https://github.com/systemjs/systemjs/blob/main/docs/module-types.md)) has not been easy before;
+Importing non-code resources using module loaders extension (e.g. [AMD](https://github.com/amdjs/amdjs-api/blob/master/LoaderPlugins.md) or [SystemJS](https://github.com/systemjs/systemjs/blob/main/docs/module-types.md)) has not been easy before;
 previously an ambient module declaration had to be defined for each resource.
 
 TypeScript 2.0 supports the use of the wildcard character (`*`) to declare a "family" of module names;
@@ -741,8 +741,8 @@ function test(x: Bar) {
 ## Private and Protected Constructors
 
 A class constructor may be marked `private` or `protected`.
-A class with private constructor cannot be instantiated outside the class body, and cannot be extended.
-A class with protected constructor cannot be instantiated outside the class body, but can be extended.
+A class with a private constructor cannot be instantiated outside the class body, and cannot be extended.
+A class with a protected constructor cannot be instantiated outside the class body, but can be extended.
 
 ##### Example
 
@@ -805,7 +805,7 @@ httpService("", headers); // Now ok, previously wasn't
 ## Including built-in type declarations with `--lib`
 
 Getting to ES6/ES2015 built-in API declarations were only limited to `target: ES6`.
-Enter [`lib`](/tsconfig#lib); with [`lib`](/tsconfig#lib) you can specify a list of built-in API declaration groups that you can chose to include in your project.
+Enter [`lib`](/tsconfig#lib); with [`lib`](/tsconfig#lib) you can specify a list of built-in API declaration groups that you can choose to include in your project.
 For instance, if you expect your runtime to have support for `Map`, `Set` and `Promise` (e.g. most evergreen browsers today), just include `--lib es2015.collection,es2015.promise`.
 Similarly you can exclude declarations you do not want to include in your project, e.g. DOM if you are working on a node project using `--lib es5,es6`.
 

@@ -17,7 +17,7 @@ function greet(person: { name: string; age: number }) {
 }
 ```
 
-or they can be named by using either an interface
+or they can be named by using either an interface:
 
 ```ts twoslash
 interface Person {
@@ -31,7 +31,7 @@ function greet(person: Person) {
 }
 ```
 
-or a type alias.
+or a type alias:
 
 ```ts twoslash
 type Person = {
@@ -46,6 +46,10 @@ function greet(person: Person) {
 ```
 
 In all three examples above, we've written functions that take objects that contain the property `name` (which must be a `string`) and `age` (which must be a `number`).
+
+## Quick Reference
+
+We have cheat-sheets available for both [`type` and `interface`](https://www.typescriptlang.org/cheatsheets), if you want a quick look at the important every-day syntax at a glance.
 
 ## Property Modifiers
 
@@ -84,7 +88,6 @@ In this example, both `xPos` and `yPos` are considered optional.
 We can choose to provide either of them, so every call above to `paintShape` is valid.
 All optionality really says is that if the property _is_ set, it better have a specific type.
 
-
 We can also read from those properties - but when we do under [`strictNullChecks`](/tsconfig#strictNullChecks), TypeScript will tell us they're potentially `undefined`.
 
 ```ts twoslash
@@ -108,7 +111,7 @@ function paintShape(opts: PaintOptions) {
 ```
 
 In JavaScript, even if the property has never been set, we can still access it - it's just going to give us the value `undefined`.
-We can just handle `undefined` specially.
+We can just handle `undefined` specially by checking for it.
 
 ```ts twoslash
 interface Shape {}
@@ -157,23 +160,21 @@ Now `xPos` and `yPos` are both definitely present within the body of `paintShape
 
 > Note that there is currently no way to place type annotations within destructuring patterns.
 > This is because the following syntax already means something different in JavaScript.
-
-```ts twoslash
-// @noImplicitAny: false
-// @errors: 2552 2304
-interface Shape {}
-declare function render(x: unknown);
-// ---cut---
-function draw({ shape: Shape, xPos: number = 100 /*...*/ }) {
-  render(shape);
-  render(xPos);
-}
-```
-
-In an object destructuring pattern, `shape: Shape` means "grab the property `shape` and redefine it locally as a variable named `Shape`.
-Likewise `xPos: number` creates a variable named `number` whose value is based on the parameter's `xPos`.
-
-Using [mapping modifiers](/docs/handbook/2/mapped-types.html#mapping-modifiers), you can remove `optional` attributes.
+>
+> ```ts twoslash
+> // @noImplicitAny: false
+> // @errors: 2552 2304
+> interface Shape {}
+> declare function render(x: unknown);
+> // ---cut---
+> function draw({ shape: Shape, xPos: number = 100 /*...*/ }) {
+>   render(shape);
+>   render(xPos);
+> }
+> ```
+>
+> In an object destructuring pattern, `shape: Shape` means "grab the property `shape` and redefine it locally as a variable named `Shape`."
+> Likewise `xPos: number` creates a variable named `number` whose value is based on the parameter's `xPos`.
 
 ### `readonly` Properties
 
@@ -273,8 +274,8 @@ This index signature states that when a `StringArray` is indexed with a `number`
 Only some types are allowed for index signature properties: `string`, `number`, `symbol`, template string patterns, and union types consisting only of these.
 
 <details>
-    <summary>It is possible to support both types of indexers...</summary>
-    <p>It is possible to support both types of indexers, but the type returned from a numeric indexer must be a subtype of the type returned from the string indexer. This is because when indexing with a <code>number</code>, JavaScript will actually convert that to a <code>string</code> before indexing into an object. That means that indexing with <code>100</code> (a <code>number</code>) is the same thing as indexing with <code>"100"</code> (a <code>string</code>), so the two need to be consistent.</p>
+    <summary>It is possible to support multiple types of indexers...</summary>
+    <p>It is possible to support multiple types of indexers. Note that when using both `number` and `string` indexers, the type returned from a numeric indexer must be a subtype of the type returned from the string indexer. This is because when indexing with a <code>number</code>, JavaScript will actually convert that to a <code>string</code> before indexing into an object. That means that indexing with <code>100</code> (a <code>number</code>) is the same thing as indexing with <code>"100"</code> (a <code>string</code>), so the two need to be consistent.</p>
 
 ```ts twoslash
 // @errors: 2413
@@ -336,6 +337,134 @@ myArray[2] = "Mallory";
 ```
 
 You can't set `myArray[2]` because the index signature is `readonly`.
+
+## Excess Property Checks
+
+Where and how an object is assigned a type can make a difference in the type system.
+One of the key examples of this is in excess property checking, which validates the object more thoroughly when it is created and assigned to an object type during creation.
+
+```ts twoslash
+// @errors: 2345 2739
+interface SquareConfig {
+  color?: string;
+  width?: number;
+}
+
+function createSquare(config: SquareConfig): { color: string; area: number } {
+  return {
+    color: config.color || "red",
+    area: config.width ? config.width * config.width : 20,
+  };
+}
+
+let mySquare = createSquare({ colour: "red", width: 100 });
+```
+
+Notice the given argument to `createSquare` is spelled _`colour`_ instead of `color`.
+In plain JavaScript, this sort of thing fails silently.
+
+You could argue that this program is correctly typed, since the `width` properties are compatible, there's no `color` property present, and the extra `colour` property is insignificant.
+
+However, TypeScript takes the stance that there's probably a bug in this code.
+Object literals get special treatment and undergo _excess property checking_ when assigning them to other variables, or passing them as arguments.
+If an object literal has any properties that the "target type" doesn't have, you'll get an error:
+
+```ts twoslash
+// @errors: 2345 2739
+interface SquareConfig {
+  color?: string;
+  width?: number;
+}
+
+function createSquare(config: SquareConfig): { color: string; area: number } {
+  return {
+    color: config.color || "red",
+    area: config.width ? config.width * config.width : 20,
+  };
+}
+// ---cut---
+let mySquare = createSquare({ colour: "red", width: 100 });
+```
+
+Getting around these checks is actually really simple.
+The easiest method is to just use a type assertion:
+
+```ts twoslash
+// @errors: 2345 2739
+interface SquareConfig {
+  color?: string;
+  width?: number;
+}
+
+function createSquare(config: SquareConfig): { color: string; area: number } {
+  return {
+    color: config.color || "red",
+    area: config.width ? config.width * config.width : 20,
+  };
+}
+// ---cut---
+let mySquare = createSquare({ width: 100, opacity: 0.5 } as SquareConfig);
+```
+
+However, a better approach might be to add a string index signature if you're sure that the object can have some extra properties that are used in some special way.
+If `SquareConfig` can have `color` and `width` properties with the above types, but could _also_ have any number of other properties, then we could define it like so:
+
+```ts twoslash
+interface SquareConfig {
+  color?: string;
+  width?: number;
+  [propName: string]: unknown;
+}
+```
+
+Here we're saying that `SquareConfig` can have any number of properties, and as long as they aren't `color` or `width`, their types don't matter.
+
+One final way to get around these checks, which might be a bit surprising, is to assign the object to another variable:
+Since assigning `squareOptions` won't undergo excess property checks, the compiler won't give you an error:
+
+```ts twoslash
+interface SquareConfig {
+  color?: string;
+  width?: number;
+}
+
+function createSquare(config: SquareConfig): { color: string; area: number } {
+  return {
+    color: config.color || "red",
+    area: config.width ? config.width * config.width : 20,
+  };
+}
+// ---cut---
+let squareOptions = { colour: "red", width: 100 };
+let mySquare = createSquare(squareOptions);
+```
+
+The above workaround will work as long as you have a common property between `squareOptions` and `SquareConfig`.
+In this example, it was the property `width`. It will however, fail if the variable does not have any common object property. For example:
+
+```ts twoslash
+// @errors: 2559
+interface SquareConfig {
+  color?: string;
+  width?: number;
+}
+
+function createSquare(config: SquareConfig): { color: string; area: number } {
+  return {
+    color: config.color || "red",
+    area: config.width ? config.width * config.width : 20,
+  };
+}
+// ---cut---
+let squareOptions = { colour: "red" };
+let mySquare = createSquare(squareOptions);
+```
+
+Keep in mind that for simple code like above, you probably shouldn't be trying to "get around" these checks.
+For more complex object literals that have methods and hold state, you might need to keep these techniques in mind, but a majority of excess property errors are actually bugs.
+
+That means if you're running into excess property checking problems for something like option bags, you might need to revise some of your type declarations.
+In this instance, if it's okay to pass an object with both a `color` or `colour` property to `createSquare`, you should fix up the definition of `SquareConfig` to reflect that.
 
 ## Extending Types
 
@@ -449,16 +578,46 @@ draw({ color: "blue", radius: 42 });
 draw({ color: "red", raidus: 42 });
 ```
 
-## Interfaces vs. Intersections
+## Interface Extension vs. Intersection
 
 We just looked at two ways to combine types which are similar, but are actually subtly different.
 With interfaces, we could use an `extends` clause to extend from other types, and we were able to do something similar with intersections and name the result with a type alias.
-The principle difference between the two is how conflicts are handled, and that difference is typically one of the main reasons why you'd pick one over the other between an interface and a type alias of an intersection type.
+The principal difference between the two is how conflicts are handled, and that difference is typically one of the main reasons why you'd pick one over the other between an interface and a type alias of an intersection type.
 
-<!--
-For example, two types can declare the same property in an interface.
+If interfaces are defined with the same name, TypeScript will attempt to merge them if the properties are compatible. If the properties are not compatible (i.e., they have the same property name but different types), TypeScript will raise an error.
 
-TODO -->
+In the case of intersection types, properties with different types will be merged automatically. When the type is used later, TypeScript will expect the property to satisfy both types simultaneously, which may produce unexpected results.
+
+For example, the following code will throw an error because the properties are incompatible:
+
+```ts
+interface Person {
+  name: string;
+}
+
+interface Person {
+  name: number;
+}
+```
+
+In contrast, the following code will compile, but it results in a `never` type:
+
+```ts twoslash
+interface Person1 {
+  name: string;
+}
+
+interface Person2 {
+  name: number;
+}
+
+type Staff = Person1 & Person2
+
+declare const staffer: Staff;
+staffer.name;
+//       ^?
+```
+In this case, Staff would require the name property to be both a string and a number, which results in property being of type `never`.
 
 ## Generic Object Types
 
@@ -904,7 +1063,7 @@ function foo(a: number, b: number, ...args: number[]) {
 
 ### `readonly` Tuple Types
 
-One final note about tuple types - tuples types have `readonly` variants, and can be specified by sticking a `readonly` modifier in front of them - just like with array shorthand syntax.
+One final note about tuple types - tuple types have `readonly` variants, and can be specified by sticking a `readonly` modifier in front of them - just like with array shorthand syntax.
 
 ```ts twoslash
 function doSomething(pair: readonly [string, number]) {

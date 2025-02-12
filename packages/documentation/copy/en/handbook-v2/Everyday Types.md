@@ -34,7 +34,6 @@ We'll learn more about the syntax `T<U>` when we cover _generics_.
 
 > Note that `[number]` is a different thing; refer to the section on [Tuples](/docs/handbook/2/objects.html#tuple-types).
 
-
 ## `any`
 
 TypeScript also has a special type, `any`, that you can use whenever you don't want a particular value to cause typechecking errors.
@@ -44,7 +43,7 @@ When a value is of type `any`, you can access any properties of it (which will i
 ```ts twoslash
 let obj: any = { x: 0 };
 // None of the following lines of code will throw compiler errors.
-// Using `any` disables all further type checking, and it is assumed 
+// Using `any` disables all further type checking, and it is assumed
 // you know the environment better than TypeScript.
 obj.foo();
 obj();
@@ -132,6 +131,16 @@ Much like variable type annotations, you usually don't need a return type annota
 The type annotation in the above example doesn't change anything.
 Some codebases will explicitly specify a return type for documentation purposes, to prevent accidental changes, or just for personal preference.
 
+#### Functions Which Return Promises
+
+If you want to annotate the return type of a function which returns a promise, you should use the `Promise` type:
+
+```ts twoslash
+async function getFavoriteNumber(): Promise<number> {
+  return 26;
+}
+```
+
 ### Anonymous Functions
 
 Anonymous functions are a little bit different from function declarations.
@@ -141,17 +150,16 @@ Here's an example:
 
 ```ts twoslash
 // @errors: 2551
-// No type annotations here, but TypeScript can spot the bug
 const names = ["Alice", "Bob", "Eve"];
 
-// Contextual typing for function
+// Contextual typing for function - parameter s inferred to have type string
 names.forEach(function (s) {
-  console.log(s.toUppercase());
+  console.log(s.toUpperCase());
 });
 
 // Contextual typing also applies to arrow functions
 names.forEach((s) => {
-  console.log(s.toUppercase());
+  console.log(s.toUpperCase());
 });
 ```
 
@@ -204,7 +212,7 @@ In JavaScript, if you access a property that doesn't exist, you'll get the value
 Because of this, when you _read_ from an optional property, you'll have to check for `undefined` before using it.
 
 ```ts twoslash
-// @errors: 2532
+// @errors: 18048
 function printName(obj: { first: string; last?: string }) {
   // Error - might crash if 'obj.last' wasn't provided!
   console.log(obj.last.toUpperCase());
@@ -243,6 +251,18 @@ printId("202");
 // Error
 printId({ myID: 22342 });
 ```
+
+> The separator of the union members is allowed before the first element, so you could also write this:
+> ```ts twoslash
+> function printTextOrNumberOrBool(
+>   textOrNumberOrBool:
+>     | string
+>     | number
+>     | boolean
+> ) {
+>   console.log(textOrNumberOrBool);
+> }
+> ```
 
 ### Working with Union Types
 
@@ -387,6 +407,7 @@ Being concerned only with the structure and capabilities of types is why we call
 Type aliases and interfaces are very similar, and in many cases you can choose between them freely.
 Almost all features of an `interface` are available in `type`, the key distinction is that a type cannot be re-opened to add new properties vs an interface which is always extendable.
 
+<div class='table-container'>
 <table class='full-width-table'>
   <tbody>
     <tr>
@@ -398,24 +419,24 @@ Almost all features of an `interface` are available in `type`, the key distincti
         <p>Extending an interface</p>
         <code><pre>
 interface Animal {
-  name: string
+  name: string;
 }<br/>
 interface Bear extends Animal {
-  honey: boolean
+  honey: boolean;
 }<br/>
-const bear = getBear() 
-bear.name
-bear.honey
+const bear = getBear();
+bear.name;
+bear.honey;
         </pre></code>
       </td>
       <td>
         <p>Extending a type via intersections</p>
         <code><pre>
 type Animal = {
-  name: string
+  name: string;
 }<br/>
 type Bear = Animal & { 
-  honey: boolean 
+  honey: boolean;
 }<br/>
 const bear = getBear();
 bear.name;
@@ -428,10 +449,10 @@ bear.honey;
         <p>Adding new fields to an existing interface</p>
         <code><pre>
 interface Window {
-  title: string
+  title: string;
 }<br/>
 interface Window {
-  ts: TypeScriptAPI
+  ts: TypeScriptAPI;
 }<br/>
 const src = 'const a = "Hello World"';
 window.ts.transpileModule(src, {});
@@ -441,10 +462,10 @@ window.ts.transpileModule(src, {});
         <p>A type cannot be changed after being created</p>
         <code><pre>
 type Window = {
-  title: string
+  title: string;
 }<br/>
 type Window = {
-  ts: TypeScriptAPI
+  ts: TypeScriptAPI;
 }<br/>
 <span style="color: #A31515"> // Error: Duplicate identifier 'Window'.</span><br/>
         </pre></code>
@@ -452,6 +473,7 @@ type Window = {
     </tr>
     </tbody>
 </table>
+</div>
 
 You'll learn more about these concepts in later chapters, so don't worry if you don't understand all of these right away.
 
@@ -459,6 +481,7 @@ You'll learn more about these concepts in later chapters, so don't worry if you 
 - Type aliases may not participate [in declaration merging, but interfaces can](/play?#code/PTAEEEDtQS0gXApgJwGYEMDGjSfdAIx2UQFoB7AB0UkQBMAoEUfO0Wgd1ADd0AbAK6IAzizp16ALgYM4SNFhwBZdAFtV-UAG8GoPaADmNAcMmhh8ZHAMMAvjLkoM2UCvWad+0ARL0A-GYWVpA29gyY5JAWLJAwGnxmbvGgALzauvpGkCZmAEQAjABMAMwALLkANBl6zABi6DB8okR4Jjg+iPSgABboovDk3jjo5pbW1d6+dGb5djLwAJ7UoABKiJTwjThpnpnGpqPBoTLMAJrkArj4kOTwYmycPOhW6AR8IrDQ8N04wmo4HHQCwYi2Waw2W1S6S8HX8gTGITsQA).
 - Interfaces may only be used to [declare the shapes of objects, not rename primitives](/play?#code/PTAEAkFMCdIcgM6gC4HcD2pIA8CGBbABwBtIl0AzUAKBFAFcEBLAOwHMUBPQs0XFgCahWyGBVwBjMrTDJMAshOhMARpD4tQ6FQCtIE5DWoixk9QEEWAeV37kARlABvaqDegAbrmL1IALlAEZGV2agBfampkbgtrWwMAJlAAXmdXdy8ff0Dg1jZwyLoAVWZ2Lh5QVHUJflAlSFxROsY5fFAWAmk6CnRoLGwmILzQQmV8JmQmDzI-SOiKgGV+CaYAL0gBBdyy1KCQ-Pn1AFFplgA5enw1PtSWS+vCsAAVAAtB4QQWOEMKBuYVUiVCYvYQsUTQcRSBDGMGmKSgAAa-VEgiQe2GLgKQA).
 - Interface names will [_always_ appear in their original form](/play?#code/PTAEGEHsFsAcEsA2BTATqNrLusgzngIYDm+oA7koqIYuYQJ56gCueyoAUCKAC4AWHAHaFcoSADMaQ0PCG80EwgGNkALk6c5C1EtWgAsqOi1QAb06groEbjWg8vVHOKcAvpokshy3vEgyyMr8kEbQJogAFND2YREAlOaW1soBeJAoAHSIkMTRmbbI8e6aPMiZxJmgACqCGKhY6ABGyDnkFFQ0dIzMbBwCwqIccabcYLyQoKjIEmh8kwN8DLAc5PzwwbLMyAAeK77IACYaQSEjUWY2Q-YAjABMAMwALA+gbsVjNXW8yxySoAADaAA0CCaZbPh1XYqXgOIY0ZgmcK0AA0nyaLFhhGY8F4AHJmEJILCWsgZId4NNfIgGFdcIcUTVfgBlZTOWC8T7kAJ42G4eT+GS42QyRaYbCgXAEEguTzeXyCjDBSAAQSE8Ai0Xsl0K9kcziExDeiQs1lAqSE6SyOTy0AKQ2KHk4p1V6s1OuuoHuzwArMagA) in error messages, but _only_ when they are used by name.
+- Using interfaces with `extends` [can often be more performant for the compiler](https://github.com/microsoft/TypeScript/wiki/Performance#preferring-interfaces-over-intersections) than type aliases with intersections
 
 For the most part, you can choose based on personal preference, and TypeScript will tell you if it needs something to be the other kind of declaration. If you would like a heuristic, use `interface` until you need to use features from `type`.
 
@@ -500,7 +523,7 @@ If this happens, you can use two assertions, first to `any` (or `unknown`, which
 declare const expr: any;
 type T = { a: 1; b: 2; c: 3 };
 // ---cut---
-const a = (expr as any) as T;
+const a = expr as any as T;
 ```
 
 ## Literal Types
@@ -597,7 +620,7 @@ The same applies to strings:
 ```ts twoslash
 // @errors: 2345
 declare function handleRequest(url: string, method: "GET" | "POST"): void;
-// ---cut---
+
 const req = { url: "https://example.com", method: "GET" };
 handleRequest(req.url, req.method);
 ```

@@ -20,7 +20,6 @@ import { Contributors } from "../components/handbook/Contributors"
 import { overrideSubNavLinksWithSmoothScroll, updateSidebarOnScroll } from "./scripts/setupSubNavigationSidebar"
 import { setupLikeDislikeButtons } from "./scripts/setupLikeDislikeButtons"
 import { DislikeUnfilledSVG, LikeUnfilledSVG } from "../components/svgs/documentation"
-import { Popup, useQuickInfoPopup } from "../components/Popup"
 import Helmet from "react-helmet"
 
 type Props = {
@@ -44,9 +43,6 @@ const HandbookTemplate: React.FC<Props> = (props) => {
     console.log("Could not render:", JSON.stringify(props))
     return <div></div>
   }
-
-  // Note: This can, and does, change triggering re-renders
-  const showPopup = useQuickInfoPopup(props.pageContext.lang)
 
   const [deprecationURL, setDeprecationURL] = useState(post.frontmatter!.deprecated_by)
 
@@ -85,14 +81,13 @@ const HandbookTemplate: React.FC<Props> = (props) => {
   const sidebarHeaders = post.headings?.filter(h => (h?.depth || 0) <= 3) || []
   const showSidebar = !post.frontmatter.disable_toc
   const showExperimental = post.frontmatter.experimental
-  const showSidebarHeadings = post.headings && sidebarHeaders.length <= 30
   const navigation = getDocumentationNavForLanguage(props.pageContext.lang)
   const isHandbook = post.frontmatter.handbook
   const prefix = isHandbook ? "Handbook" : "Documentation"
 
   const slug = slugger()
   return (
-    <Layout title={`${prefix} - ${post.frontmatter.title}`} description={post.frontmatter.oneline || ""} lang={props.pageContext.lang}>
+    <Layout title={`${prefix} - ${post.frontmatter.title}`} description={post.frontmatter.oneline || ""} lang={props.pageContext.lang} skipToAnchor="#handbook-content">
       <section id="doc-layout" >
         <SidebarToggleButton />
 
@@ -160,17 +155,10 @@ const HandbookTemplate: React.FC<Props> = (props) => {
             </div>
             {showSidebar &&
               <aside className="handbook-toc">
-                <nav className={deprecationURL ? "deprecated" : ""}>
-                  {showSidebarHeadings && <>
+                <nav className={deprecationURL ? "deprecated" : ""} aria-label="table of contents">
+                  {<>
                     <h5>{i("handb_on_this_page")}</h5>
-                    <ul>
-                      {
-                        sidebarHeaders.map(heading => {
-                          const id = slug.slug(heading!.value, false)
-                          return <li key={id}><a href={'#' + id}>{heading!.value}</a></li>
-                        })
-                      }
-                    </ul>
+                    <MarkdownHeadingTree tree={headerListToTree(sidebarHeaders)} className="handbook-on-this-page-section-list" slug={slug} />
                   </>
                   }
                   <div id="like-dislike-subnav">
@@ -190,9 +178,62 @@ const HandbookTemplate: React.FC<Props> = (props) => {
           <Contributors lang={props.pageContext.lang} i={i} path={props.pageContext.repoPath} lastEdited={props.pageContext.modifiedTime} />
         </div>
       </section>
-      <Popup {...showPopup} />
     </Layout>
   )
+}
+
+type MarkdownHeadingTreeNode = {
+  value: string
+  depth: number
+  children?: MarkdownHeadingTreeNode[]
+}
+
+function headerListToTree(sidebarHeaders: GatsbyTypes.Maybe<Pick<GatsbyTypes.MarkdownHeading, "value" | "depth">>[]) {
+  const tree: MarkdownHeadingTreeNode[] = []
+  const stack: { node: MarkdownHeadingTreeNode; depth: number }[] = []
+
+  sidebarHeaders.forEach(header => {
+    const value = header?.value!;
+    const depth = header?.depth!;
+    const newNode: MarkdownHeadingTreeNode = {
+      value,
+      depth
+    }
+
+    while (stack.length > 0 && stack[stack.length - 1].depth >= depth) {
+      stack.pop()
+    }
+
+    if (stack.length === 0) {
+      tree.push(newNode)
+    } else {
+      const topNode = stack[stack.length - 1].node;
+      if (!topNode.children) {
+        topNode.children = [];
+      }
+      topNode.children.push(newNode);
+    }
+
+    stack.push({ node: newNode, depth })
+  })
+
+  return tree
+}
+
+function MarkdownHeadingTree(props: { tree: MarkdownHeadingTreeNode[], slug: typeof slugger, className?: string }) {
+  return <ul className={props.className}>
+      {
+        props.tree.map(heading => {
+          const id = props.slug.slug(heading.value, false)
+          return (
+            <li key={id}>
+              <a href={'#' + id}>{heading.value}</a>
+              {heading.children?.length ? <MarkdownHeadingTree tree={heading.children} slug={props.slug} /> : null}
+            </li>
+          )
+        })
+      }
+    </ul>
 }
 
 export default (props: Props) => <Intl locale={props.pageContext.lang}><HandbookTemplate {...props} /></Intl>

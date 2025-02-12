@@ -1,6 +1,6 @@
 # TypeScript Example Code
 
-The English examples can be found in [`en/`](en/).
+The English examples can be found in [`copy/en/`](copy/en/).
 
 # TypeScript Example Code
 
@@ -35,7 +35,7 @@ All localizations live inside the `copy` folder:
 - Any examples not copied over fall back to the english version
 - You can change the name of an example for your language by having `//// { "title": 'c0d3 fl0w', ... }` in the first line of the example
 
-Languages are compiled to TOC JSON files in [`generated`](./generated), one per lanaguge.
+Languages are compiled to TOC JSON files in [`generated`](./generated), one per language.
 
 # Deployment
 

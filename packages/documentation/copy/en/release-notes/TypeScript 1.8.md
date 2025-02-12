@@ -150,7 +150,7 @@ const Greeter = ({ name = "world" }) => <div>Hello, {name}!</div>;
 let example = <Greeter name="TypeScript 1.8" />;
 ```
 
-For this feature and simplified props, be sure to be use the [latest version of react.d.ts](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/react/index.d.ts).
+For this feature and simplified props, be sure to use the [latest version of react.d.ts](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/react/index.d.ts).
 
 ## Simplified `props` type management in React
 
@@ -351,7 +351,7 @@ define("a", ["require", "exports", "lib/b"], function (require, exports, B) {
 
 ## Support for `default` import interop with SystemJS
 
-Module loaders like SystemJS wrap CommonJS modules and expose then as a `default` ES6 import. This makes it impossible to share the definition files between the SystemJS and CommonJS implementation of the module as the module shape looks different based on the loader.
+Module loaders like SystemJS wrap CommonJS modules and expose them as a `default` ES6 import. This makes it impossible to share the definition files between the SystemJS and CommonJS implementation of the module as the module shape looks different based on the loader.
 
 Setting the new compiler flag [`allowSyntheticDefaultImports`](/tsconfig#allowSyntheticDefaultImports) indicates that the module loader performs some kind of synthetic default import member creation not indicated in the imported .ts or .d.ts. The compiler will infer the existence of a `default` export that has the shape of the entire module itself.
 
@@ -466,7 +466,7 @@ var div = jsxFactory_1.jsxFactory.createElement("div", null, "Hello JSX!");
 TypeScript 1.8 extends [user-defined type guard functions](./typescript-1.6.html#user-defined-type-guard-functions) to class and interface methods.
 
 `this is T` is now valid return type annotation for methods in classes and interfaces.
-When used in a type narowing position (e.g. `if` statement), the type of the call expression target object would be narrowed to `T`.
+When used in a type narrowing position (e.g. `if` statement), the type of the call expression target object would be narrowed to `T`.
 
 ##### Example
 
@@ -524,7 +524,7 @@ Also, a nightly NuGet package to match the [nightly npm package](http://blogs.ms
 We understand that a ton of monochrome output can be a little difficult on the eyes.
 Colors can help discern where a message starts and ends, and these visual clues are important when error output gets overwhelming.
 
-By just passing the [`pretty`](/tsconfig#pretty) command line option, TypeScript gives more colorful output with context about where things are going wrong.
+By just passing the [`pretty`](/tsconfig#pretty) command line option, TypeScript gives a more colorful output with context about where things are going wrong.
 
 ![Showing off pretty error messages in ConEmu](https://raw.githubusercontent.com/wiki/Microsoft/TypeScript/images/new-in-typescript/pretty01.png)
 

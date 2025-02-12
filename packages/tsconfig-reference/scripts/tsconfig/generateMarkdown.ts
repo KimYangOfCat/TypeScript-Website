@@ -3,7 +3,7 @@
 
 /** Run with:
      node --inspect-brk ./node_modules/.bin/ts-node --project packages/tsconfig-reference/tsconfig.json packages/tsconfig-reference/scripts/generateMarkdown.ts
-     yarn ts-node --project packages/tsconfig-reference/tsconfig.json packages/tsconfig-reference/scripts/generateMarkdown.ts 
+     pnpm ts-node --project packages/tsconfig-reference/tsconfig.json packages/tsconfig-reference/scripts/generateMarkdown.ts 
 */
 
 /**
@@ -19,7 +19,7 @@
 
 console.log("TSConfig Ref: MD for TSConfig");
 
-import { writeFileSync, readdirSync, existsSync, mkdirSync } from "fs";
+import { writeFileSync, readdirSync, existsSync, mkdirSync, readFileSync } from "fs";
 import { join } from "path";
 import { fileURLToPath } from "url";
 import * as assert from "assert";
@@ -36,10 +36,8 @@ import {
   parseMarkdown,
 } from "../tsconfigRules.js";
 
-// @ts-ignore
-import options from "../../data/tsconfigOpts.json";
-// @ts-ignore
-import categories from "../../data/tsconfigCategories.json";
+const options = JSON.parse(readFileSync(join("data", "tsconfigOpts.json"), "utf8"));
+const categories = JSON.parse(readFileSync(join("data", "tsconfigCategories.json"), "utf8"));
 
 const orderedCategories = [
   "Project_Files_0",
@@ -138,7 +136,7 @@ languages.forEach((lang) => {
 
     // Show a sticky sub-nav for the categories
     if (sectionCategories.length > 1) {
-      mdChunks.push(`<nav id="sticky"><ul>`);
+      mdChunks.push(`<nav id="sticky" aria-label="Compiler options"><ul>`);
       sectionCategories.forEach((categoryID) => {
         const categoryPath = getPathInLocale(join("categories", categoryID + ".md"));
         const categoryFile = matter.read(fileURLToPath(categoryPath));
@@ -199,7 +197,7 @@ languages.forEach((lang) => {
         const scopedMDPath = join("options", section.name, optionName + ".md");
 
         const fullPath = new URL(`../../copy/${lang}/${mdPath}`, import.meta.url);
-        const exampleOptionContent = `\n\n\n Run:\n    echo '---\\ndisplay: "${optionName}"\\noneline: "Does something"\\n---\\n${option.description?.message}\\n' > ${fullPath}\n\nThen add some docs and run: \n>  yarn workspace tsconfig-reference build\n\n`;
+        const exampleOptionContent = `\n\n\n Run:\n    echo '---\\ndisplay: "${optionName}"\\noneline: "Does something"\\n---\\n${option.description?.message}\\n' > ${fullPath}\n\nThen add some docs and run: \n>  pnpm run --filter=tsconfig-reference build\n\n`;
 
         const optionPath = getPathInLocale(mdPath, exampleOptionContent, true);
         const scopedOptionPath = getPathInLocale(scopedMDPath, exampleOptionContent, true);

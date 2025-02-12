@@ -3,24 +3,26 @@ import remark from "remark";
 import remarkHTML from "remark-html";
 import ts from "typescript";
 
-export interface CommandLineOption {
-  name: string;
-  type:
-    | "string"
-    | "number"
-    | "boolean"
-    | "object"
-    | "list"
-    | Map<string, number | string>;
-  defaultValueDescription?: string | number | boolean | ts.DiagnosticMessage;
-  category?: ts.DiagnosticMessage;
-  element: CommandLineOption;
-}
-
 declare module "typescript" {
   const optionDeclarations: CommandLineOption[];
   const optionsForWatch: CommandLineOption[];
   const typeAcquisitionDeclarations: CommandLineOption[];
+  const defaultInitCompilerOptions: ts.CompilerOptions;
+}
+
+export interface CommandLineOption {
+  name: string;
+  type:
+  | "string"
+  | "number"
+  | "boolean"
+  | "object"
+  | "list"
+  | Map<string, number | string>;
+  defaultValueDescription?: string | number | boolean | ts.DiagnosticMessage;
+  category?: ts.DiagnosticMessage;
+  strictFlag?: true;
+  element: CommandLineOption;
 }
 
 /**
@@ -41,7 +43,6 @@ export const denyList: CompilerOptionName[] = [
   "locale",
   "clean",
   "dry",
-  "enableAutoDiscovery",
 ];
 
 /** Things we should document, but really want to help move people away from */
@@ -72,22 +73,21 @@ export const buildOptionCompilerOptNames: string[] = ts.buildOpts
 export const rootOptNames = ["files", "extends", "include", "exclude", "references"];
 
 /** You should use this! They are off by default */
-export const recommended: CompilerOptionName[] = [
-  "strict",
-  "forceConsistentCasingInFileNames",
-  "alwaysStrict",
-  "strictNullChecks",
-  "strictBindCallApply",
-  "strictFunctionTypes",
-  "strictPropertyInitialization",
-  "noImplicitThis",
-  "noImplicitAny",
-  "esModuleInterop",
-  "skipLibCheck",
+export const recommended = [
+  // Options enabled by --init
+  ...Object.entries(ts.defaultInitCompilerOptions)
+    .filter(([, value]) => value === true)
+    .map(([name]) => name),
+  // Options enabled by --strict
+  ...ts.optionDeclarations
+    .filter((option) => option.strictFlag)
+    .map((option) => option.name),
+  // Not included in --init yet:
+  // https://github.com/microsoft/TypeScript/issues/44524#:~:text=--init%20should%20include%20it%20once%20the%20ecosystem%20catches%20up.
   "exactOptionalPropertyTypes",
 ];
 
-type RootProperties = "files" | "extends" | "include" | "exclude";
+type RootProperties = "files" | "extends" | "include" | "exclude" | "references";
 type WatchProperties =
   | "force"
   | "watchFile"
@@ -114,6 +114,7 @@ export const relatedTo: [AnOption, AnOption[]][] = [
       "alwaysStrict",
       "strictNullChecks",
       "strictBindCallApply",
+      "strictBuiltinIteratorReturn",
       "strictFunctionTypes",
       "strictPropertyInitialization",
       "noImplicitAny",
@@ -124,6 +125,7 @@ export const relatedTo: [AnOption, AnOption[]][] = [
   ["alwaysStrict", ["strict"]],
   ["strictNullChecks", ["strict"]],
   ["strictBindCallApply", ["strict"]],
+  ["strictBuiltinIteratorReturn", ["strict"]],
   ["strictFunctionTypes", ["strict"]],
   ["strictPropertyInitialization", ["strict"]],
   ["noImplicitAny", ["strict"]],
@@ -167,8 +169,11 @@ export const relatedTo: [AnOption, AnOption[]][] = [
   ["declarationDir", ["declaration"]],
   ["emitDeclarationOnly", ["declaration"]],
 
-  ["moduleResolution", ["module"]],
-  ["module", ["moduleResolution"]],
+  ["module", ["moduleResolution", "esModuleInterop", "allowImportingTsExtensions", "allowArbitraryExtensions", "resolveJsonModule"]],
+  ["moduleResolution", ["module", "paths", "baseUrl", "rootDirs", "moduleSuffixes", "customConditions", "resolvePackageJsonExports", "resolvePackageJsonImports"]],
+  ["customConditions", ["moduleResolution", "resolvePackageJsonExports", "resolvePackageJsonImports"]],
+  ["resolvePackageJsonExports", ["moduleResolution", "customConditions", "resolvePackageJsonImports"]],
+  ["resolvePackageJsonImports", ["moduleResolution", "customConditions", "resolvePackageJsonExports"]],
 
   ["jsx", ["jsxFactory", "jsxFragmentFactory", "jsxImportSource"]],
   ["jsxFactory", ["jsx", "jsxFragmentFactory", "jsxImportSource"]],
@@ -178,7 +183,9 @@ export const relatedTo: [AnOption, AnOption[]][] = [
   ["suppressImplicitAnyIndexErrors", ["noImplicitAny"]],
 
   ["listFiles", ["explainFiles"]],
-  ["preserveValueImports", ["isolatedModules", "importsNotUsedAsValues"]]
+
+  ["preserveValueImports", ["isolatedModules", "importsNotUsedAsValues", "verbatimModuleSyntax"]],
+  ["importsNotUsedAsValues", ["preserveValueImports", "verbatimModuleSyntax"]],
 ];
 
 /**
@@ -188,7 +195,7 @@ export const relatedTo: [AnOption, AnOption[]][] = [
 
 function trueIf(name: string) {
   return [
-    `\`true\` if [\`${name}\`](#${name}),`,
+    `\`true\` if [\`${name}\`](#${name});`,
     "`false` otherwise.",
   ];
 }
@@ -200,51 +207,65 @@ export const defaultsForOptions = {
       typeof option.defaultValueDescription === "object"
         ? option.defaultValueDescription.message
         : formatDefaultValue(
-            option.defaultValueDescription,
-            option.type === "list" ? option.element.type : option.type
-          ),
+          option.defaultValueDescription,
+          option.type === "list" ? option.element.type : option.type
+        ),
     ])
   ),
   allowSyntheticDefaultImports: [
-    "`true` if [`module`](#module) is `system`, or [`esModuleInterop`](#esModuleInterop) and [`module`](#module) is not `es6`/`es2015` or `esnext`,",
+    "`true` if [`esModuleInterop`](#esModuleInterop) is enabled, [`module`](#module) is `system`, or [`moduleResolution`](#module-resolution) is `bundler`;",
     "`false` otherwise.",
   ],
   alwaysStrict: trueIf("strict"),
   declaration: trueIf("composite"),
+  esModuleInterop: [
+    "`true` if [`module`](#module) is `node16`, `nodenext`, or `preserve`;",
+    "`false` otherwise.",
+  ],
   exclude: [
     "node_modules",
     "bower_components",
     "jspm_packages",
     "[`outDir`](#outDir)",
   ],
-  include: ["`[]` if [`files`](#files) is specified,", "`**` otherwise."],
+  include: ["`[]` if [`files`](#files) is specified;", "`**/*` otherwise."],
   incremental: trueIf("composite"),
+  isolatedModules: trueIf("verbatimModuleSyntax"),
   jsxFactory: "React.createElement",
   locale: "Platform specific.",
   module: [
-    "`CommonJS` if [`target`](#target) is `ES3` or `ES5`,",
+    "`CommonJS` if [`target`](#target) is `ES5`;",
     "`ES6`/`ES2015` otherwise.",
   ],
   moduleResolution: [
-    "`Classic` if [`module`](#module) is `AMD`, `UMD`, `System` or `ES6`/`ES2015`,",
-    "Matches if [`module`](#module) is `node12` or `nodenext`,",
+    "`Classic` if [`module`](#module) is `AMD`, `UMD`, `System`, or `ES6`/`ES2015`;",
+    "Matches if [`module`](#module) is `node16` or `nodenext`;",
     "`Node` otherwise.",
   ],
-  newLine: "Platform specific.",
+  newLine: "`lf`",
   noImplicitAny: trueIf("strict"),
   noImplicitThis: trueIf("strict"),
   preserveConstEnums: trueIf("isolatedModules"),
   reactNamespace: "React",
+  resolvePackageJsonExports: [
+    "`true` when [`moduleResolution`](#moduleResolution) is `node16`, `nodenext`, or `bundler`;",
+    "otherwise `false`",
+  ],
+  resolvePackageJsonImports: [
+    "`true` when [`moduleResolution`](#moduleResolution) is `node16`, `nodenext`, or `bundler`;",
+    "otherwise `false`",
+  ],
   rootDir: "Computed from the list of input files.",
   rootDirs: "Computed from the list of input files.",
   strictBindCallApply: trueIf("strict"),
+  strictBuiltinIteratorReturn: trueIf("strict"),
   strictFunctionTypes: trueIf("strict"),
   useUnknownInCatchVariables: trueIf("strict"),
   strictPropertyInitialization: trueIf("strict"),
   strictNullChecks: trueIf("strict"),
-  target: "ES3",
+  target: "ES5",
   useDefineForClassFields: [
-    "`true` if [`target`](#target) is `ES2022` or higher, including `ESNext`,",
+    "`true` if [`target`](#target) is `ES2022` or higher, including `ESNext`;",
     "`false` otherwise.",
   ],
 };
@@ -292,18 +313,40 @@ function formatAllowedValues(type: CommandLineOption["type"]) {
 }
 
 export const releaseToConfigsMap: { [key: string]: AnOption[] } = {
+  "5.7": ["rewriteRelativeImportExtensions"],
+  "5.6": ["strictBuiltinIteratorReturn", "noUncheckedSideEffectImports"],
+  "5.5": ["isolatedDeclarations", "noCheck"],
+  "5.0": [
+    "allowArbitraryExtensions",
+    "allowImportingTsExtensions",
+    "customConditions",
+    "resolvePackageJsonExports",
+    "resolvePackageJsonImports",
+    "verbatimModuleSyntax",
+  ],
   "4.7": ["moduleDetection", "moduleSuffixes"],
   "4.5": ["preserveValueImports"],
   "4.4": ["exactOptionalPropertyTypes", "useUnknownInCatchVariables"],
   "4.3": ["noImplicitOverride"],
-  "4.2": ["noPropertyAccessFromIndexSignature", "explainFiles"],
-  "4.1": ["jsxImportSource", "noUncheckedIndexedAccess", "disableFilenameBasedTypeAcquisition"],
+  "4.2": [
+    "noPropertyAccessFromIndexSignature",
+    "explainFiles",
+    "excludeDirectories",
+    "excludeFiles",
+  ],
+  "4.1": [
+    "generateTrace",
+    "jsxImportSource",
+    "noUncheckedIndexedAccess",
+    "disableFilenameBasedTypeAcquisition",
+  ],
   "4.0": ["jsxFragmentFactory", "disableReferencedProjectLoad"],
   "3.8": [
     "assumeChangesOnlyAffectDirectDependencies",
     "importsNotUsedAsValues",
     "disableSolutionSearching",
     "fallbackPolling",
+    "synchronousWatchDirectory",
     "watchDirectory",
     "watchFile",
   ],
@@ -315,38 +358,88 @@ export const releaseToConfigsMap: { [key: string]: AnOption[] } = {
   "3.5": ["allowUmdGlobalAccess"],
   "3.4": ["incremental", "tsBuildInfoFile"],
   "3.2": ["strictBindCallApply", "showConfig"],
-  "3.0": ["composite", "build"],
-  "2.9": ["keyofStringsOnly", "declarationMap"],
-  "2.8": ["emitDeclarationOnly"],
+  "3.0": ["composite", "references"],
+  "2.9": ["declarationMap", "keyofStringsOnly", "resolveJsonModule"],
+  "2.8": ["emitDeclarationOnly", "preserveWatchOutput"],
   "2.7": ["strictPropertyInitialization", "esModuleInterop"],
   "2.6": ["strictFunctionTypes"],
-  "2.4": ["noStrictGenericChecks"],
+  "2.5": ["noStrictGenericChecks", "preserveSymlinks"],
   "2.3": ["strict", "downlevelIteration", "init", "checkJs"],
-  "2.2": ["jsx"],
-  "2.1": ["extends", "alwaysStrict"],
+  "2.2": ["jsxFactory", "plugins"],
+  "2.1": ["extends", "alwaysStrict", "importHelpers"],
   "2.0": [
+    "baseUrl",
     "declarationDir",
-    "skipLibCheck",
+    "disableSizeLimit",
+    "exclude",
+    "extendedDiagnostics",
+    "include",
+    "lib",
+    "listEmittedFiles",
+    "maxNodeModuleJsDepth",
+    "noImplicitThis",
     "noUnusedLocals",
     "noUnusedParameters",
-    "lib",
-    "strictNullChecks",
-    "noImplicitThis",
+    "paths",
     "rootDirs",
+    "skipLibCheck",
+    "strictNullChecks",
     "traceResolution",
-    "include",
+    "types",
+    "typeRoots",
   ],
   "1.8": [
     "allowJs",
     "allowSyntheticDefaultImports",
     "allowUnreachableCode",
     "allowUnusedLabels",
+    "forceConsistentCasingInFileNames",
     "noImplicitReturns",
+    "noImplicitUseStrict",
     "noFallthroughCasesInSwitch",
+    "pretty",
+    "reactNamespace",
   ],
-  "1.5": ["inlineSourceMap", "noEmitHelpers", "newLine", "inlineSources", "rootDir"],
-  "1.4": ["noEmitOnError"],
-  "1.0": ["declaration", "target", "module", "outFile"],
+  "1.6": [
+    "jsx",
+    "moduleResolution",
+    "outFile",
+    "skipDefaultLibCheck",
+    "suppressExcessPropertyErrors",
+  ],
+  "1.5": [
+    "emitDecoratorMetadata",
+    "experimentalDecorators",
+    "files",
+    "inlineSourceMap",
+    "inlineSources",
+    "isolatedModules",
+    "listFiles",
+    "newLine",
+    "noEmit",
+    "noEmitHelpers",
+    "rootDir",
+    "stripInternal",
+  ],
+  "1.4": ["noEmitOnError", "preserveConstEnums", "suppressImplicitAnyIndexErrors"],
+  "1.0": [
+    "charset",
+    "declaration",
+    "diagnostics",
+    "emitBOM",
+    "mapRoot",
+    "module",
+    "noErrorTruncation",
+    "noImplicitAny",
+    "noLib",
+    "noResolve",
+    "out",
+    "outDir",
+    "removeComments",
+    "sourceMap",
+    "sourceRoot",
+    "target",
+  ],
 };
 
 export const additionalOptionDescriptors: Record<string, { categoryCode: number }> = {
@@ -366,8 +459,8 @@ Object.keys(releaseToConfigsMap).forEach((v) => {
 export const parseMarkdown = (value: string | string[]) =>
   Array.isArray(value)
     ? `<ul>${value
-        .map((element) => `<li>${parseMarkdown(element)}</li>`)
-        .join("")}</ul>`
+      .map((element) => `<li>${parseMarkdown(element)}</li>`)
+      .join("")}</ul>`
     : remark()
-        .use(remarkHTML)
-        .processSync(value !== undefined ? String(value).replace(/^[-.0-9_a-z]+$/i, "`$&`") : undefined);
+      .use(remarkHTML)
+      .processSync(value !== undefined ? String(value).replace(/^[-.0-9_a-z]+$/i, "`$&`") : undefined);

@@ -33,7 +33,7 @@ export const maxInterval: 12;
 The TypeScript playground can show you the `.d.ts` equivalent for JavaScript code. You can [try it yourself here](/play?useJavaScript=true#code/GYVwdgxgLglg9mABAcwKZQIICcsEMCeAMqmMlABYAUuOAlIgN6IBQiiW6IWSNWAdABsSZcswC+zCAgDOURAFtcADwAq5GKUQBeRAEYATM2by4AExBC+qJQAc4WKNO2NWKdNjxFhFADSvFquqk4sxAA).
 
 The `.d.ts` syntax intentionally looks like [ES Modules](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import) syntax.
-ES Modules was ratified by TC39 in 2019, while it has been available via transpilers for a long time, however if you have a JavaScript codebase using ES Modules:
+ES Modules was ratified by TC39 in 2015 as part of ES2015 (ES6), while it has been available via transpilers for a long time, however if you have a JavaScript codebase using ES Modules:
 
 ```js
 export function getArrayLength(arr) {
@@ -59,7 +59,7 @@ Which can be described by the following .d.ts:
 
 ```ts
 declare const helloWorld: RegExp;
-export default helloWorld;
+export = helloWorld;
 ```
 
 Or a number:
@@ -70,7 +70,7 @@ module.exports = 3.142;
 
 ```ts
 declare const pi: number;
-export default pi;
+export = pi;
 ```
 
 One style of exporting in CommonJS is to export a function.
@@ -86,15 +86,6 @@ module.exports = getArrayLength;
 ```
 
 Which can be described with:
-
-```ts
-export default function getArrayLength(arr: any[]): number;
-export const maxInterval: 12;
-```
-
-Note that using `export default` in your .d.ts files requires [`esModuleInterop: true`](/tsconfig#esModuleInterop) to work.
-If you can't have `esModuleInterop: true` in your project, such as when you're submitting a PR to Definitely Typed, you'll have to use the `export=` syntax instead. This older syntax is harder to use but works everywhere.
-Here's how the above example would have to be written using `export=`:
 
 ```ts
 declare function getArrayLength(arr: any[]): number;
